@@ -3,7 +3,7 @@
 // ===============================
 
 // URL Web App utama (ganti dengan URL Web App Apps Script kamu setelah deploy)
-const API_URL = 'https://script.google.com/macros/s/PASTE_WEBAPP_URL_DISINI/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxdBg3XRoXt0IAW2-8WGfwaQFqZZf7kwnO_EWP9oxkYNwZjyzs2Cy5BP_Y7zZDFp0RXXQ/exec';
 
 // Cek status login (menggunakan localStorage)
 function checkLogin() {
