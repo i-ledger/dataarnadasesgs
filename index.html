@@ -1,28 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>i-Armada Login</title>
-<script>
-const API_ROOT = 'PASTE_YOUR_DEPLOYED_WEBAPP_URL';
-</script>
-<style>/* minimal CSS */</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>i-Armada — Login</title>
+  <style>body{font-family:Arial;padding:16px}</style>
+  <script>const API_ROOT = 'PASTE_YOUR_DEPLOYED_WEBAPP_URL';</script>
 </head>
 <body>
-<h2>Login i-Armada</h2>
-<form id="loginForm">
-<input name="id_pt" placeholder="ID PT (mis: PT001)" required><br>
-<input name="email" placeholder="email" required><br>
-<input name="password" placeholder="password" type="password" required><br>
-<button>Login</button>
-</form>
-<script>
-document.getElementById('loginForm').addEventListener('submit', async (ev)=>{
-ev.preventDefault();
-const f = ev.target;
-const body = {action:'getUser', email:f.email.value, password:f.password.value, id_pt:f.id_pt.value};
-const q = `?action=getUser&email=${encodeURIComponent(body.email)}&password=${encodeURIComponent(body.password)}&id_pt=${encodeURIComponent(body.id_pt)}`;
-const res = await fetch(API_ROOT+q).then(r=>r.json());
-if(res.status==='ok'){
-localStorage.setItem('user', JSON.stringify(res.user));
+  <h2>i-Armada — Login</h2>
+  <form id="loginForm">
+    <input name="id_pt" placeholder="ID PT (contoh: PT001)" required><br><br>
+    <input name="email" type="email" placeholder="email" required><br><br>
+    <input name="password" type="password" placeholder="password" required><br><br>
+    <button>Login</button>
+  </form>
+  <hr>
+  <h3>Register (Admin / Operator)</h3>
+  <form id="regForm">
+    <input name="id_pt" placeholder="ID PT" required><br><br>
+    <input name="nama" placeholder="Nama" required><br><br>
+    <input name="email" placeholder="Email" required><br><br>
+    <input name="password" placeholder="Password" required><br><br>
+    <select name="role"><option value="operator">Operator</option><option value="admin">Admin</option></select><br><br>
+    <button>Register</button>
+  </form>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async e=>{
+      e.preventDefault(); const f=e.target;
+      const q = `?action=getUser&email=${encodeURIComponent(f.email.value)}&password=${encodeURIComponent(f.password.value)}&id_pt=${encodeURIComponent(f.id_pt.value)}`;
+      const res = await fetch(API_ROOT+q).then(r=>r.json());
+      if(res.status==='ok'){ localStorage.setItem('user', JSON.stringify(res.user)); location.href='dashboard.html'; }
+      else alert('Login gagal');
+    });
+    document.getElementById('regForm').addEventListener('submit', async e=>{
+      e.preventDefault(); const f=e.target; const body={action:'registerUser', id_pt:f.id_pt.value, nama:f.nama.value, email:f.email.value, password:f.password.value, role:f.role.value};
+      const res = await fetch(API_ROOT,{method:'POST',body:JSON.stringify(body)}).then(r=>r.json());
+      if(res.status==='ok') alert('Terdaftar, silakan login'); else alert('Gagal');
+    });
+  </script>
+</body>
+</html>
