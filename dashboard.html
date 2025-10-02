@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard</title>
+<script>const API_ROOT='PASTE_YOUR_DEPLOYED_WEBAPP_URL';</script>
+</head>
+<body>
+  <h2>Dashboard</h2>
+  <div id="userInfo"></div>
+  <div>
+    <button onclick="location.href='armada.html'">Armada</button>
+    <button onclick="location.href='drivers.html'">Drivers</button>
+    <button onclick="location.href='maintenance.html'">Laporan Perawatan</button>
+    <button onclick="location.href='diagram.html'">Diagram</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+  <script>
+    const user = JSON.parse(localStorage.getItem('user')||'null'); if(!user) location.href='index.html';
+    document.getElementById('userInfo').innerText = `Halo ${user.nama} — PT: ${user.id_pt}`;
+    function logout(){ localStorage.removeItem('user'); location.href='index.html'; }
+  </script>
+</body>
+</html>
