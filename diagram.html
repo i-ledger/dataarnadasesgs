@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>const API_ROOT='PASTE_YOUR_DEPLOYED_WEBAPP_URL';</script>
+</head>
+<body>
+  <h2>Diagram Perawatan</h2>
+  <select id="jenis"><option value="">Semua</option><option value="oli">Ganti Oli</option><option value="service">Service</option><option value="ban">Ganti Ban</option><option value="kopling">Ganti Kopling</option><option value="STNK">STNK</option><option value="Pajak">Pajak</option><option value="KIR">KIR</option></select>
+  <input type="date" id="from"> s/d <input type="date" id="to"><button id="go">Tampilkan</button>
+  <canvas id="chart" width="800" height="300"></canvas>
+  <script>
+    const user = JSON.parse(localStorage.getItem('user')||'null'); if(!user) location.href='index.html';
+    document.getElementById('go').addEventListener('click', async ()=>{
+      const jenis = document.getElementById('jenis').value; const from = document.getElementById('from').value; const to = document.getElementById('to').value;
+      const q = `?action=getDiagram&id_pt=${encodeURIComponent(user.id_pt)}&jenis=${encodeURIComponent(jenis)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+      const res = await fetch(API_ROOT+q).then(r=>r.json());
+      const labels = res.map(x=>x.tanggal); const data = res.map(x=>x.count);
+      const ctx = document.getElementById('chart').getContext('2d');
+      if(window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(ctx,{type:'bar', data:{labels, datasets:[{label:'Jumlah', data}]}});
+    });
+  </script>
+</body>
+</html>
