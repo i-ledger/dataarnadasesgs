@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maintenance</title>
+<script>const API_ROOT='PASTE_YOUR_DEPLOYED_WEBAPP_URL';</script>
+</head>
+<body>
+  <h2>Laporan Perawatan</h2>
+  <form id="f">
+    <select id="armSel" name="id_armada"></select><br>
+    <select name="jenis" required>
+      <option value="oli">Ganti Oli</option>
+      <option value="service">Service</option>
+      <option value="ban">Ganti Ban</option>
+      <option value="kopling">Ganti Kopling</option>
+      <option value="STNK">Perpanjang STNK</option>
+      <option value="Pajak">Pajak Tahunan</option>
+      <option value="KIR">KIR</option>
+    </select><br>
+    <input type="date" name="tanggal" required><br>
+    <input name="keterangan" placeholder="Keterangan"><br>
+    <input name="biaya" placeholder="Biaya (angka)"><br>
+    <input type="file" id="file" accept="image/*"><br>
+    <button>Submit Laporan</button>
+  </form>
+  <hr>
+  <h3>Daftar Laporan</h3>
+  <table border="1" id="tbl"><thead><tr><th>ID</th><th>NoPol</th><th>Jenis</th><th>Tanggal</th><th>Foto</th><th>Aksi</th></tr></thead><tbody></tbody></table>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('user')||'null'); if(!user) location.href='index.html';
+    async function loadArmada(){ const res = await fetch(API_ROOT+`?action=getArmada&id_pt=${encodeURIComponent(user.id_pt)}`).then(r=>r.json()); const sel=document.getElementById('armSel'); sel.innerHTML=''; res.forEach(a=>{ const o=document.createElement('option'); o.value=a.id_armada; o.text=`${a.nopol} (${a.tipe})`; sel.appendChild(o); }); }
+    async function load(){ await loadArmada(); const res = await fetch(API_ROOT+`?action=getMaintenance&id_pt=${encodeURIComponent(user.id_pt)}`).then(r=>r.json()); const tbody=document.querySelector('#tbl tbody'); tbody.innerHTML=''; res.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${r.id_report}</td><td>${r.nopol}</td><td>${r.jenis}</td><td>${r.tanggal}</td><td>${r.foto_url? ('<a href="'+r.foto_url+'" target="_blank">Lihat</a>') : '-'}</td><td><button class="edit" data-id="${r.id_report}">Edit</button> <button class="del" data-id="${r.id_report}">Hapus</button></td>`; tbody.appendChild(tr); }); }
+
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f=e.target; const fileInput=document.getElementById('file');
+      let photoRes = null;
+      if(fileInput.files.length){
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = async function(ev){
+          const base64 = ev.target.result;
+          // upload to apps script
+          const filename = `${Date.now()}_${file.name}`;
+          const up = await fetch(API_ROOT,{method:'POST',body:JSON.stringify({action:'uploadPhoto', filename, contentBase64:base64, mimeType:file.type, id_pt:user.id_pt})}).then(r=>r.json());
+          if(up.status==='ok'){
+            photoRes = up;
+            submitReport(up.fileId);
+          } else { alert('Gagal upload foto: '+(up.message||'')); }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        submitReport();
+      }
+      async function submitReport(fileId){
+        const payload = { action:'addMaintenance', id_armada: f.id_armada.value, nopol: document.querySelector('#armSel option:checked').text.split(' ')[0], jenis: f.jenis.value, keterangan:f.keterangan.value, tanggal:f.tanggal.value, biaya:f.biaya.value, foto_file_id: fileId || '', reported_by: user.user_id };
+        const res = await fetch(API_ROOT,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json()); if(res.status==='ok'){ alert('Laporan ditambah'); load(); } else alert('Gagal');
+      }
+    });
+
+    document.addEventListener('click', async e=>{
+      if(e.target.classList.contains('del')){ if(!confirm('Hapus laporan?')) return; const id=e.target.dataset.id; const res=await fetch(API_ROOT,{method:'POST',body:JSON.stringify({action:'deleteMaintenance', id_report:id})}).then(r=>r.json()); if(res.status==='ok') load(); else alert('Gagal'); }
+      if(e.target.classList.contains('edit')){ const id=e.target.dataset.id; const newDate = prompt('Masukkan tanggal (YYYY-MM-DD)'); if(newDate===null) return; const res=await fetch(API_ROOT,{method:'POST',body:JSON.stringify({action:'editMaintenance', id_report:id, tanggal:newDate})}).then(r=>r.json()); if(res.status==='ok') load(); else alert('Gagal'); }
+    });
+
+    load();
+  </script>
+</body>
+</html>
