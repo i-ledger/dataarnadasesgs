@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Driver - iArmada</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Data Driver</h1>
+    <form id="driverForm" class="bg-white p-4 rounded shadow">
+      <input id="driverNama" class="border p-2 w-full mb-2" placeholder="Nama Driver" required />
+      <input id="driverNoHp" class="border p-2 w-full mb-2" placeholder="Nomor HP" required />
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan</button>
+    </form>
+
+    <table class="mt-4 w-full bg-white rounded shadow">
+      <thead><tr class="bg-blue-100"><th>Nama</th><th>No HP</th><th>Aksi</th></tr></thead>
+      <tbody id="driversTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadDrivers(){
+      const res = await fetch(`${API_URL}?action=getDrivers`);
+      const data = await res.json();
+      const tbody = document.getElementById('driversTable');
+      tbody.innerHTML = data.map(d => `
+        <tr><td>${d.nama}</td><td>${d.nohp}</td>
+        <td><button onclick="delDriver('${d.id}')" class='text-red-600'>Hapus</button></td></tr>`).join('');
+    }
+
+    document.getElementById('driverForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nama = driverNama.value.trim();
+      const nohp = driverNoHp.value.trim();
+      await fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addDriver', nama, nohp})});
+      driverForm.reset(); loadDrivers();
+    });
+
+    async function delDriver(id){
+      if(confirm('Hapus driver ini?')){
+        await fetch(API_URL, {method:'POST', body:JSON.stringify({action:'delDriver', id})});
+        loadDrivers();
+      }
+    }
+
+    loadDrivers();
+  </script>
+</body>
+</html>
